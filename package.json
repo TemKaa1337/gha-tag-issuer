@@ -1,0 +1,19 @@
+{
+  "name": "tag-issuer",
+  "version": "1.0.0",
+  "description": "Issue and push git tag on commit push or PR merge",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tag-issuer",
+    "tag-bumper"
+  ],
+  "author": "Artem Komarov",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

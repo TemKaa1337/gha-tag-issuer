@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  node:
+    build:
+      context: .
+      args:
+        LINUX_USER_ID: ${LINUX_USER_ID:-1000}
+    container_name: tag-issuer
+    volumes:
+      - ./:/srv/app

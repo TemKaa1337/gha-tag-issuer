@@ -1,0 +1,22 @@
+name: 'Github Tag Issuer'
+description: 'Issue and push git tag on commit push or PR merge'
+author: 'Artem Komarov'
+
+inputs:
+  GITHUB_TOKEN:
+    required: true
+    description: 'Github'
+
+outputs:
+  previous_tag:
+    description: 'The latest tag before this action run'
+  new_tag:
+    description: 'Generated tag'
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+branding:
+  icon: 'git-merge'
+  color: 'purple'
