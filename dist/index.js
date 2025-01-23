@@ -32094,7 +32094,6 @@ const core_1 = __nccwpck_require__(7484);
 const github_1 = __nccwpck_require__(3228);
 const PullRequestTagIssuer_1 = __nccwpck_require__(5461);
 // TODO: create a separate workflow with specific tag creation
-// TODO: get pull request number from event?
 const token = (0, core_1.getInput)('GITHUB_TOKEN');
 const octokit = (0, github_1.getOctokit)(token);
 const pullRequestTagIssuer = new PullRequestTagIssuer_1.PullRequestTagIssuer(octokit);
