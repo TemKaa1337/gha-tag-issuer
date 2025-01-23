@@ -10,12 +10,14 @@ const octokit = getOctokit(token);
 
 const pullRequestTagIssuer = new PullRequestTagIssuer(octokit);
 
+info('test before run');
+
 export async function run(): Promise<void> {
+    info('test before');
     await pullRequestTagIssuer.issue(context)
+    info('test after');
 }
 
 if (!process.env.JEST_WORKER_ID) {
-    info('test before');
     run();
-    info('test after');
 }

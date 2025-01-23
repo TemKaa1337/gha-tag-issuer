@@ -26,4 +26,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_VERSION: true
           DEFAULT_INCREMENT: patch
-          ACTIONS_STEP_DEBUG: true
