@@ -6,7 +6,7 @@ inputs:
   GITHUB_TOKEN:
     required: true
     description: 'Github token.'
-  APPEND_V:
+  WITH_VERSION:
     required: false
     description: 'A flag, used to determine is "v" should be appended to the start of a new tag. Can be true or false.'
     default: 'true'
