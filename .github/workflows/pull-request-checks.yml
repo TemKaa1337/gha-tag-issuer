@@ -6,11 +6,6 @@ on:
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: 20.x
-
     steps:
       - uses: actions/checkout@v4
         with:
