@@ -5,7 +5,33 @@ author: 'Artem Komarov'
 inputs:
   GITHUB_TOKEN:
     required: true
-    description: 'Github'
+    description: 'Github token.'
+  APPEND_V:
+    required: false
+    description: 'A flag, used to determine is "v" should be appended to the start of a new tag. Can be true or false.'
+    default: 'true'
+  DEFAULT_INCREMENT:
+    required: false
+    description: 'Default version part increase (patch/minor/major).'
+    default: 'patch'
+  MAJOR_LABELS:
+    required: false
+    description: 'An array of tags, used to determine that next version must be major.'
+    default: |-
+      major
+      bc-break
+  MINOR_LABELS:
+    required: false
+    description: 'An array of tags, used to determine that next version must be minor.'
+    default: |-
+      minor
+      enhancement
+  PATCH_LABELS:
+    required: false
+    description: 'An array of tags, used to determine that next version must be a patch.'
+    default: |-
+      patch
+      bug
 
 outputs:
   previous_tag:

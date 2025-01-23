@@ -4,8 +4,8 @@
   "description": "Issue and push git tag on commit push or PR merge",
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc && ncc build lib/index.js",
+    "test": "jest"
   },
   "keywords": [
     "tag-issuer",
@@ -14,6 +14,15 @@
   "author": "Artem Komarov",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@types/node": "^22.10.7",
+    "@vercel/ncc": "^0.38.3"
   }
 }
