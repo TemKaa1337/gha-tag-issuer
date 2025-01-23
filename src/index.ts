@@ -1,4 +1,4 @@
-import { getInput } from "@actions/core";
+import { getInput, info } from "@actions/core";
 import { context, getOctokit } from "@actions/github";
 import { PullRequestTagIssuer } from "./Service/PullRequestTagIssuer";
 
@@ -15,5 +15,7 @@ export async function run(): Promise<void> {
 }
 
 if (!process.env.JEST_WORKER_ID) {
+    info('test before');
     run();
+    info('test after');
 }
