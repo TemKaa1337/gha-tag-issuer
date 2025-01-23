@@ -26,15 +26,12 @@ export class TagManager {
                 type: 'commit',
             });
 
-            console.info(`Create tag response: ${createTagResponse}`);
-
-            const createRefResponse = await this.octokit.rest.git.createRef({
+            await this.octokit.rest.git.createRef({
                 owner,
                 repo,
                 ref: `refs/tags/${tag}`,
                 sha: createTagResponse.data.sha,
             });
-            console.info(`Create ref response: ${createRefResponse}`);
         } catch (error) {
             console.error(`Error pushing tag: ${error}.`);
 
