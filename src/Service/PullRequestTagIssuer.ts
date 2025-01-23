@@ -1,5 +1,5 @@
 import { GitHub } from '@actions/github/lib/utils';
-import { getInput } from "@actions/core";
+import { getInput, info } from "@actions/core";
 import { TagManager } from "./TagManager";
 import { VersionManager } from "./VersionManager";
 import { PullRequestLabelProvider } from "../Provider/PullRequestLabelProvider";
@@ -23,6 +23,7 @@ export class PullRequestTagIssuer {
     }
 
     public async issue(context: Context): Promise<void> {
+        info('test inside');
         const withVersion = getInput('WITH_VERSION') === 'true';
         const defaultIncrement = getInput('DEFAULT_INCREMENT') as 'patch' | 'minor' | 'major';
 
