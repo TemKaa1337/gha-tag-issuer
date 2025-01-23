@@ -22,5 +22,5 @@ jobs:
         uses: temkaa1337/tag-issuer@master
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPEND_V: true
+          WITH_VERSION: true
           DEFAULT_INCREMENT: patch
