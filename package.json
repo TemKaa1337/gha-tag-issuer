@@ -2,7 +2,7 @@
   "name": "tag-issuer",
   "version": "1.0.0",
   "description": "Issue and push git tag on commit push or PR merge",
-  "main": "src/index.ts",
+  "main": "index.js",
   "scripts": {
     "build": "tsc && ncc build lib/index.js",
     "test": "jest"
