@@ -1,5 +1,5 @@
 import { GitHub } from '@actions/github/lib/utils';
-import { getInput, info } from "@actions/core";
+import { getInput } from "@actions/core";
 import { TagManager } from "./TagManager";
 import { VersionManager } from "./VersionManager";
 import { PullRequestLabelProvider } from "../Provider/PullRequestLabelProvider";
@@ -22,42 +22,35 @@ export class PullRequestTagIssuer {
         this.commitManager = new CommitManager(octokit)
     }
 
-    public async issue(context: Context): Promise<void> {
-        info('test inside');
+    public async issue(context: Context): Promise<{previousTag: string|null, newTag: string}> {
         const withVersion = getInput('WITH_VERSION') === 'true';
         const defaultIncrement = getInput('DEFAULT_INCREMENT') as 'patch' | 'minor' | 'major';
 
-        console.info(`With version: ${withVersion}`);
         const repoInfo = context.repo
 
-        console.info(`Repo info: ${repoInfo}`);
         const pullRequestLabels = await this.pullRequestLabelProvider.provide(
             repoInfo.owner,
             repoInfo.repo,
             await this.getPullRequestNumber(context)
         )
 
-        console.info(`PR labels: ${pullRequestLabels}`);
         const configuredLabels = await this.configuredLabelProvider.provide();
 
-        console.info(`Configured labels: ${configuredLabels}`);
         const incrementMode = await this.getIncrementMode(
             pullRequestLabels,
             configuredLabels,
             defaultIncrement
         );
 
-        console.info(`Increment mode: ${incrementMode}`);
         const latestTag = await this.tagManager.latest(repoInfo.owner, repoInfo.repo);
 
-        console.info(`Latest tag: ${latestTag}`);
         const nextTag = await this.versionManager.increment(latestTag, incrementMode, withVersion);
 
-        console.info(`Next tag: ${nextTag}`);
         const latestCommit = await this.commitManager.latest(repoInfo.owner, repoInfo.repo);
 
-        console.info(`Latest commit: ${latestCommit}`);
         await this.tagManager.create(repoInfo.owner, repoInfo.repo, nextTag, latestCommit);
+
+        return {previousTag: latestTag, newTag: nextTag};
     }
 
     private async getIncrementMode(

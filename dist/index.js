@@ -121,25 +121,17 @@ class PullRequestTagIssuer {
         this.commitManager = new CommitManager_1.CommitManager(octokit);
     }
     async issue(context) {
-        (0, core_1.info)('test inside');
         const withVersion = (0, core_1.getInput)('WITH_VERSION') === 'true';
         const defaultIncrement = (0, core_1.getInput)('DEFAULT_INCREMENT');
-        console.info(`With version: ${withVersion}`);
         const repoInfo = context.repo;
-        console.info(`Repo info: ${repoInfo}`);
         const pullRequestLabels = await this.pullRequestLabelProvider.provide(repoInfo.owner, repoInfo.repo, await this.getPullRequestNumber(context));
-        console.info(`PR labels: ${pullRequestLabels}`);
         const configuredLabels = await this.configuredLabelProvider.provide();
-        console.info(`Configured labels: ${configuredLabels}`);
         const incrementMode = await this.getIncrementMode(pullRequestLabels, configuredLabels, defaultIncrement);
-        console.info(`Increment mode: ${incrementMode}`);
         const latestTag = await this.tagManager.latest(repoInfo.owner, repoInfo.repo);
-        console.info(`Latest tag: ${latestTag}`);
         const nextTag = await this.versionManager.increment(latestTag, incrementMode, withVersion);
-        console.info(`Next tag: ${nextTag}`);
         const latestCommit = await this.commitManager.latest(repoInfo.owner, repoInfo.repo);
-        console.info(`Latest commit: ${latestCommit}`);
         await this.tagManager.create(repoInfo.owner, repoInfo.repo, nextTag, latestCommit);
+        return { previousTag: latestTag, newTag: nextTag };
     }
     async getIncrementMode(pullRequestLabels, configuredLabels, defaultIncrement) {
         for (const [key, labels] of Object.entries(configuredLabels)) {
@@ -186,14 +178,12 @@ class TagManager {
                 object: commit.sha,
                 type: 'commit',
             });
-            console.info(`Create tag response: ${createTagResponse}`);
-            const createRefResponse = await this.octokit.rest.git.createRef({
+            await this.octokit.rest.git.createRef({
                 owner,
                 repo,
                 ref: `refs/tags/${tag}`,
                 sha: createTagResponse.data.sha,
             });
-            console.info(`Create ref response: ${createRefResponse}`);
         }
         catch (error) {
             console.error(`Error pushing tag: ${error}.`);
@@ -32108,11 +32098,10 @@ const PullRequestTagIssuer_1 = __nccwpck_require__(5461);
 const token = (0, core_1.getInput)('GITHUB_TOKEN');
 const octokit = (0, github_1.getOctokit)(token);
 const pullRequestTagIssuer = new PullRequestTagIssuer_1.PullRequestTagIssuer(octokit);
-(0, core_1.info)('test before run');
 async function run() {
-    (0, core_1.info)('test before');
-    await pullRequestTagIssuer.issue(github_1.context);
-    (0, core_1.info)('test after');
+    const output = await pullRequestTagIssuer.issue(github_1.context);
+    (0, core_1.setOutput)('previous_tag', output.previousTag);
+    (0, core_1.setOutput)('new_tag', output.newTag);
 }
 if (!process.env.JEST_WORKER_ID) {
     run();
