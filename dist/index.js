@@ -18,7 +18,10 @@ class ConfiguredLabelProvider {
         };
     }
     async split(labels) {
-        return labels.split(/\r\n|\r|\n/g).filter((value) => Boolean(value));
+        return labels
+            .split(/\r\n|\r|\n/g)
+            .map((value) => value.trim())
+            .filter((value) => value !== '');
     }
 }
 exports.ConfiguredLabelProvider = ConfiguredLabelProvider;
@@ -44,9 +47,11 @@ class PullRequestLabelProvider {
                 repo: repo,
                 pull_number: pullRequestNumber,
             });
-            return response.data.labels
+            return response
+                .data
+                .labels
                 .map(label => label.name || '')
-                .filter((value) => Boolean(value));
+                .filter((value) => value !== '');
         }
         catch (error) {
             console.error(`Error fetching labels for pull request ${pullRequestNumber}: ${error}.`);
@@ -95,50 +100,16 @@ exports.CommitManager = CommitManager;
 /***/ }),
 
 /***/ 5461:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PullRequestTagIssuer = void 0;
 const core_1 = __nccwpck_require__(7484);
 const TagManager_1 = __nccwpck_require__(973);
 const VersionManager_1 = __nccwpck_require__(8737);
 const PullRequestLabelProvider_1 = __nccwpck_require__(2013);
-const github = __importStar(__nccwpck_require__(3228));
 const CommitManager_1 = __nccwpck_require__(6904);
 const ConfiguredLabelProvider_1 = __nccwpck_require__(8843);
 class PullRequestTagIssuer {
@@ -149,20 +120,28 @@ class PullRequestTagIssuer {
         this.configuredLabelProvider = new ConfiguredLabelProvider_1.ConfiguredLabelProvider();
         this.commitManager = new CommitManager_1.CommitManager(octokit);
     }
-    async issue(owner, repo) {
+    async issue(context) {
+        (0, core_1.info)('test inside');
         const withVersion = (0, core_1.getInput)('WITH_VERSION') === 'true';
         const defaultIncrement = (0, core_1.getInput)('DEFAULT_INCREMENT');
-        const pullRequestLabels = await this.pullRequestLabelProvider.provide(owner, repo, await this.getPullRequestNumber());
+        console.info(`With version: ${withVersion}`);
+        const repoInfo = context.repo;
+        console.info(`Repo info: ${repoInfo}`);
+        const pullRequestLabels = await this.pullRequestLabelProvider.provide(repoInfo.owner, repoInfo.repo, await this.getPullRequestNumber(context));
+        console.info(`PR labels: ${pullRequestLabels}`);
         const configuredLabels = await this.configuredLabelProvider.provide();
+        console.info(`Configured labels: ${configuredLabels}`);
         const incrementMode = await this.getIncrementMode(pullRequestLabels, configuredLabels, defaultIncrement);
-        const latestTag = await this.tagManager.latest(owner, repo);
-        const nextTag = await this.versionManager.increment((latestTag === null || latestTag === void 0 ? void 0 : latestTag.name) || null, incrementMode, withVersion);
-        const latestCommit = await this.commitManager.latest(owner, repo);
-        await this.tagManager.create(owner, repo, nextTag, latestCommit);
+        console.info(`Increment mode: ${incrementMode}`);
+        const latestTag = await this.tagManager.latest(repoInfo.owner, repoInfo.repo);
+        console.info(`Latest tag: ${latestTag}`);
+        const nextTag = await this.versionManager.increment(latestTag, incrementMode, withVersion);
+        console.info(`Next tag: ${nextTag}`);
+        const latestCommit = await this.commitManager.latest(repoInfo.owner, repoInfo.repo);
+        console.info(`Latest commit: ${latestCommit}`);
+        await this.tagManager.create(repoInfo.owner, repoInfo.repo, nextTag, latestCommit);
     }
-    async getIncrementMode(pullRequestLabels, configuredLabels, 
-    // configuredLabels: {[key in 'major' | 'minor' | 'patch']: string[]},
-    defaultIncrement) {
+    async getIncrementMode(pullRequestLabels, configuredLabels, defaultIncrement) {
         for (const [key, labels] of Object.entries(configuredLabels)) {
             for (const label in labels) {
                 if (label in pullRequestLabels) {
@@ -173,8 +152,8 @@ class PullRequestTagIssuer {
         }
         return defaultIncrement;
     }
-    async getPullRequestNumber() {
-        const pullRequest = github.context.payload.pull_request;
+    async getPullRequestNumber(context) {
+        const pullRequest = context.payload.pull_request;
         if (!pullRequest) {
             throw new Error('This action can be used only on Pull Request merge.');
         }
@@ -207,12 +186,14 @@ class TagManager {
                 object: commit.sha,
                 type: 'commit',
             });
-            await this.octokit.rest.git.createRef({
+            console.info(`Create tag response: ${createTagResponse}`);
+            const createRefResponse = await this.octokit.rest.git.createRef({
                 owner,
                 repo,
                 ref: `refs/tags/${tag}`,
                 sha: createTagResponse.data.sha,
             });
+            console.info(`Create ref response: ${createRefResponse}`);
         }
         catch (error) {
             console.error(`Error pushing tag: ${error}.`);
@@ -227,7 +208,7 @@ class TagManager {
                 per_page: 1,
             });
             const latestTag = response.data[0];
-            return latestTag ? latestTag : null;
+            return latestTag ? latestTag.name : null;
         }
         catch (error) {
             console.error(`Error fetching the latest tag: ${error}.`);
@@ -258,7 +239,7 @@ class VersionManager {
         }
         else {
             await this.validate(current);
-            [major, minor, patch] = current.split('.').map((value) => parseInt(value));
+            [major, minor, patch] = current.replace('v', '').split('.').map((value) => parseInt(value));
             withVersion = current.startsWith('v');
         }
         switch (mode) {
@@ -272,8 +253,8 @@ class VersionManager {
                 patch++;
                 break;
         }
-        const version = withVersion ? 'v' : '';
-        return `${version}${major}.${minor}.${patch}`;
+        const prefix = withVersion ? 'v' : '';
+        return `${prefix}${major}.${minor}.${patch}`;
     }
     async validate(current) {
         if (!current.match(this.versionRegex)) {
@@ -32118,17 +32099,23 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const github_1 = __nccwpck_require__(3228);
 const PullRequestTagIssuer_1 = __nccwpck_require__(5461);
 // TODO: create a separate workflow with specific tag creation
+// TODO: get pull request number from event?
 const token = (0, core_1.getInput)('GITHUB_TOKEN');
-// @ts-ignore
-const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
 const octokit = (0, github_1.getOctokit)(token);
 const pullRequestTagIssuer = new PullRequestTagIssuer_1.PullRequestTagIssuer(octokit);
+(0, core_1.info)('test before run');
 async function run() {
-    await pullRequestTagIssuer.issue(owner, repo);
+    (0, core_1.info)('test before');
+    await pullRequestTagIssuer.issue(github_1.context);
+    (0, core_1.info)('test after');
+}
+if (!process.env.JEST_WORKER_ID) {
+    run();
 }
 
 })();
