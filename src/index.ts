@@ -13,3 +13,7 @@ const pullRequestTagIssuer = new PullRequestTagIssuer(octokit);
 export async function run(): Promise<void> {
     await pullRequestTagIssuer.issue(context)
 }
+
+if (!process.env.JEST_WORKER_ID) {
+    run();
+}
