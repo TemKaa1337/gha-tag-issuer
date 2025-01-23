@@ -20,8 +20,6 @@ jobs:
 
       - name: Increase version and issue a tag
         uses: temkaa1337/tag-issuer@master
-        env:
-          ACTIONS_STEP_DEBUG: true
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_VERSION: true
